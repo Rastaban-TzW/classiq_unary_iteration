@@ -1,4 +1,36 @@
-#selectV
+#SelectV
+
+from classiq import *
+from classiq.qmod.symbolic import floor
+import numpy as np
+
+#nth_to_last(0, list) == list[-1]
+#def nth_to_last(n:int, list): 
+#    return list[-1-n]
+
+@qfunc
+def tof_CT(b0:CBool, b1:CBool, ctl0:QBit, ctl1:QBit, target:QBit):
+    
+    #apply NOT to target if ctl0==b0, etc
+    #keeping semantics as close to original as possible
+    #within (change of basis) do CCNOT
+    #Note: this was not originally its own function, but this is very difficult to write inside a lambda.
+    @qfunc(generative=True)
+    def basischange(b0:CBool, b1:CBool, ctl0:QBit, ctl1:QBit):
+        if (not b0):
+            X(ctl0)
+        if (not b1):
+            X(ctl1)
+        return
+
+    ctls = QArray()
+    bind([ctl0,ctl1],ctls)
+    within_apply(
+        lambda: basischange(b0,b1,ctls[0],ctls[1]),
+        lambda: control(ctrl=ctls, stmt_block=lambda: X(target))
+    )
+    bind(ctls,[ctl0,ctl1])
+    return
 
 #type Node = CArray[CBool]
 
